@@ -1,0 +1,27 @@
+
+════════════════════════════════════════════════
+BACKTEST LONG + SHORT — OKX FUTUROS (15m)
+Periodo: 2025-10-01 15:00:00 → 2026-04-19 15:00:00
+STOP: 2.00% | TAKE: 2.80% | RR: 1.4
+RSI Long: 58-70 | RSI Short: 25-42
+Fees OKX: maker 0.020% | taker 0.050%
+════════════════════════════════════════════════
+TOTAL TRADES : 64
+WINRATE TOTAL: 54.69%
+PnL NETO     : $49.62
+FEES TOTAL   : $6.38
+RETORNO      : 34.94%
+MAX DRAWDOWN : 11.24%
+FILL RATE    : 47.06%
+
+── LONGS (28 trades) ──────────────────
+  Winrate : 60.71%
+  PnL neto: $33.05
+
+── SHORTS (36 trades) ─────────────────
+  Winrate : 50.0%
+  PnL neto: $16.57
+
+Capital inicial: $142.0
+Capital final  : $191.62
+════════════════════════════════════════════════
