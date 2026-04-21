@@ -43,15 +43,16 @@ Monte Carlo aplicada al backtesting de los resultados de los trades históricos 
 y reordenada aleatoriamente 10.000 veces
 
 Resultados a la simulación con 10,000 escenarios: 
-	Métrica 			              Resultado 
-	Capital inicial 	        	$142.00 
-	Resultado real final     		$191.62 
-	Mediana simulada 		        $191.62 
-	Caso optimista  	          (95%)$231.93 
-	Caso pesimista  		        (5%)$144.58 
-	Probabilidad de ganancia	  96.9% 
-	Drawdown promedio 		      -10.1% 
-	Drawdown peor caso          -18.6%
+	| Métrica | Resultado |
+	|---------|-----------|
+	| Capital inicial | $142.00 |
+	| Resultado real final | $191.62 |
+	| Mediana simulada | $191.62 |
+	| Caso optimista | (95%)$231.93 |
+	| Caso pesimista | (5%)$144.58 |
+	| Probabilidad de ganancia | 96.9% |
+	| Drawdown promedio | -10.1% |
+	| Drawdown peor caso | -18.6% |
 
 importante: 96.9% de los 10,000 escenarios terminaron en ganancia. 
 Eso indica que el resultado del backtesting no es suerte — hay consistencia real en la estrategia. 
