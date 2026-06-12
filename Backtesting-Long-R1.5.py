@@ -7,31 +7,33 @@ import matplotlib.gridspec as gridspec
 URL = "https://api.binance.com/api/v3/klines"
 
 # ─────────────────────────────────────────
-# PARÁMETROS
+# PARÁMETROS 11-06-2026
 # ─────────────────────────────────────────
-DIAS = 200
+DIAS = 1460
 SYMBOL = "BTCUSDT"
-CAPITAL_INICIAL = 142.0
-POS_USDT = 140.0
+CAPITAL_INICIAL = 771.0
+POS_USDT = 280.0 #antes 280.0
+APALANCAMIENTO = 3
 
-STOP_PCT = 0.02
-RR = 1.4
+STOP_PCT = 0.02  #antes 0.02
+RR = 1.5  #antes 1.4 , 1.5 ganador 
 TAKE_PCT = STOP_PCT * RR
 
-PULLBACK_PCT = 0.002
-FILL_WINDOW = 1
+PULLBACK_PCT = 0.002 #antes 0.002
+FILL_WINDOW = 2  #OPTIMO 2
 
+ENABLE_SHORTS = False
 # Comisiones OKX futuros (maker/taker)
 FEE_MAKER = 0.0002   # 0.02%
 FEE_TAKER = 0.0005   # 0.05%
 
 # RSI ganador del análisis anterior
-RSI_LONG_LOW  = 58
+RSI_LONG_LOW  = 50 #antes 58
 RSI_LONG_HIGH = 70
 
 # RSI para shorts (espejo bajista)
-RSI_SHORT_LOW  = 25
-RSI_SHORT_HIGH = 42
+RSI_SHORT_LOW  = 28 # antes 25
+RSI_SHORT_HIGH = 38 # antes 42
 
 # ─────────────────────────────────────────
 # DESCARGA Y PREPARACIÓN
@@ -76,7 +78,7 @@ def fees_roundtrip(pos_usdt, pnl_bruto):
 # ─────────────────────────────────────────
 # DESCARGA
 # ─────────────────────────────────────────
-print("Descargando datos 5m (200 días)...")
+print("Descargando datos 5m (1.460 días)...")
 raw5 = descargar_datos(SYMBOL, "5m", DIAS)
 
 df5 = pd.DataFrame(raw5, columns=[
@@ -105,6 +107,7 @@ df15["VWAP"] = (
 # ─────────────────────────────────────────
 # SEÑALES
 # ─────────────────────────────────────────
+
 # LONG: cruce alcista EMA9/EMA21 + RSI 58-70 + cierre > VWAP + cierre > EMA50
 df15["cruce_alcista"] = (
     (df15["EMA9"] > df15["EMA21"]) &
@@ -122,12 +125,13 @@ df15["cruce_bajista"] = (
     (df15["EMA9"] < df15["EMA21"]) &
     (df15["EMA9"].shift(1) >= df15["EMA21"].shift(1))
 )
-df15["senal_short"] = (
-    df15["cruce_bajista"] &
-    (df15["RSI14"] > RSI_SHORT_LOW) & (df15["RSI14"] < RSI_SHORT_HIGH) &
-    (df15["cierre"] < df15["VWAP"]) &
-    (df15["cierre"] < df15["EMA50"])
-)
+
+df15["senal_short"] = False #(
+    #df15["cruce_bajista"] &
+  #  (df15["RSI14"] > RSI_SHORT_LOW) & (df15["RSI14"] < RSI_SHORT_HIGH) &
+   # (df15["cierre"] < df15["VWAP"]) &
+    #(df15["cierre"] < df15["EMA50"]) 
+#)
 
 # ─────────────────────────────────────────
 # BACKTEST LONG + SHORT
@@ -177,18 +181,18 @@ for i in range(1, len(df15)):
         if direccion == "long":
             if low <= stop:
                 resultado = "STOP"
-                pnl_bruto = -POS_USDT * STOP_PCT
+                pnl_bruto = -POS_USDT * APALANCAMIENTO * STOP_PCT  
             elif high >= take:
                 resultado = "TAKE"
-                pnl_bruto = POS_USDT * STOP_PCT * RR
+                pnl_bruto = POS_USDT * APALANCAMIENTO * STOP_PCT * RR
 
         elif direccion == "short":
             if high >= stop:
                 resultado = "STOP"
-                pnl_bruto = -POS_USDT * STOP_PCT
+                pnl_bruto = -POS_USDT * APALANCAMIENTO * STOP_PCT  
             elif low <= take:
                 resultado = "TAKE"
-                pnl_bruto = POS_USDT * STOP_PCT * RR
+                pnl_bruto = POS_USDT * APALANCAMIENTO * STOP_PCT * RR
 
         if resultado:
             fees = fees_roundtrip(POS_USDT, pnl_bruto)
@@ -295,6 +299,25 @@ df_tr.to_csv("trades_long_short.csv", index=False)
 print("Guardado: summary_long_short.txt | trades_long_short.csv")
 
 # ─────────────────────────────────────────
+# ANÁLISIS POR AÑO
+# ─────────────────────────────────────────
+df_tr["año"] = pd.to_datetime(df_tr["fecha"]).dt.year
+
+print("\n── RESULTADOS POR AÑO ──────────────────────────────")
+print(f"{'Año':<6} {'Trades':>7} {'WR%':>7} {'PnL$':>9} {'Longs$':>9} {'Shorts$':>9}")
+print("-" * 55)
+
+for año in sorted(df_tr["año"].unique()):
+    sub = df_tr[df_tr["año"] == año]
+    longs_a  = sub[sub["direccion"] == "LONG"]
+    shorts_a = sub[sub["direccion"] == "SHORT"]
+    wr_a     = round((sub["resultado"] == "TAKE").sum() / len(sub) * 100, 1)
+    pnl_a    = round(sub["pnl_neto"].sum(), 2)
+    pnl_l    = round(longs_a["pnl_neto"].sum(), 2) if len(longs_a) else 0
+    pnl_s    = round(shorts_a["pnl_neto"].sum(), 2) if len(shorts_a) else 0
+    print(f"{año:<6} {len(sub):>7} {wr_a:>7} {pnl_a:>9} {pnl_l:>9} {pnl_s:>9}")
+
+# ─────────────────────────────────────────
 # GRÁFICA
 # ─────────────────────────────────────────
 if len(df_eq) > 1:
@@ -312,7 +335,7 @@ if len(df_eq) > 1:
         idx = trades.index(t) + 1
         ax1.axvline(x=idx, color=color, alpha=0.15, linewidth=1)
 
-    ax1.set_title(f"Curva de capital — Long+Short — 200 días | PnL: ${pnl_total} ({retorno}%)", fontsize=13)
+    ax1.set_title(f"Curva de capital — Long+Short — 1460 días | PnL: ${pnl_total} ({retorno}%)", fontsize=13)
     ax1.set_xlabel("Trade #")
     ax1.set_ylabel("Capital (USDT)")
     ax1.legend()

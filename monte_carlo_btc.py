@@ -14,13 +14,14 @@ import matplotlib.pyplot as plt
 # =============================================================
 
 # --- Configuracion ---
-ARCHIVO_TRADES  = 'trades_long_short.csv'
-CAPITAL_INICIAL = 142.0
+ARCHIVO_TRADES  = 'Trades-Long-R1.5.csv'
+CAPITAL_INICIAL = 771.0
 N_SIMULACIONES  = 10000
 SEMILLA         = 42
 
 # --- Cargar datos ---
 df  = pd.read_csv(ARCHIVO_TRADES)
+df  = df[df['direccion'] == 'LONG'] 
 pnl = df['pnl_neto'].values
 n_trades = len(pnl)
 
